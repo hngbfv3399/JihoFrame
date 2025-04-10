@@ -1,8 +1,8 @@
-import { createState } from "../src/Jiho/jihoFunc.js";
-import { renderApp } from "../src/Jiho/jihoRender.js";
+import { createState, subscribeState } from './jihoFunc.js';
+import { renderApp } from './jihoRender.js';
 
-// 전부 전역 등록
-window.JihoFrame = {
+export {
   createState,
-  renderApp
+  subscribeState,
+  renderApp,
 };
