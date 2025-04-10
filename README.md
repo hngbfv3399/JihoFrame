@@ -123,7 +123,7 @@ export default App;
 
 하지만 독립적인 태그를 사용 하고 싶다면 반드시 객체로 나눠야 합니다.
 
-## 컴포넌트
+## 컴포넌트와 프롭스
 
 컴포넌트를 추가 하는 방법은 components 폴더 안에 컴포넌트 이름을 가진 js파일을 생성 하시면 됩니다.
 
@@ -137,7 +137,8 @@ function App() {
   return {
     layout: [
       {
-        Example,
+        Example, //또는
+        Example: () => Example(),
       },
     ],
   };
@@ -147,14 +148,64 @@ export default App;
 ```
 
 ---
+
 ```js
 //src/components/Example.js
 function Example() {
   return {
-    div:{
-        h1:{
-            text:"hi"
-        }
+    div: {
+      h1: {
+        text: "hi",
+      },
+    },
+  };
+}
+
+export default Example;
+```
+
+프롭스로 전달하는법은 컴포넌트({프롭스}) <- 이런식으로 객체를 보내면 됩니다.
+
+사용 예시)
+
+```js
+//src/App.js
+import { createState } from "jiho-frame";
+import Example from "./components/Example";
+function App() {
+  const count = createState("count", 0);
+  return {
+    layout: [
+      {
+        Example: () => Example({ count }),
+      },
+    ],
+  };
+}
+
+export default App;
+```
+
+---
+
+```js
+//src/components/Example.js
+function Example({ count }) {
+  return {
+    div: {
+      h1: {
+        text: `${count.value}`,
+      },
+      button: {
+        text: "증가",
+        event: [
+          {
+            onclick: () => {
+              count.set(count.value + 1);
+            },
+          },
+        ],
+      },
     },
   };
 }
@@ -165,6 +216,7 @@ export default Example;
 ## 이벤트 헨들러
 
 이벤트 헨들러는 해당 태그가 있는 객체 안에 event:[{}]를 추가해 이벤트를 추가합니다.
+
 사용 예시)
 
 ```js
@@ -392,4 +444,5 @@ export default App;
 
 ## 마무리
 
-더 뭔가 추가를 하거나 수정을 해야 하지만 하루종일 이것만 만지니깐 많이 피곤하네요 현재 시간 새벽 5시 00분..
+감쟈 합니다.
+ver 1.0.24
