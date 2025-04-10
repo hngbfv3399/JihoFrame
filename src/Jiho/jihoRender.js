@@ -53,5 +53,3 @@ function createElement(tag, options) {
   
     return el;
   }
-  
-  
