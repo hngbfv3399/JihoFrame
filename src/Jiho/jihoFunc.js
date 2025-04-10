@@ -1,18 +1,20 @@
+let state = {};
 let subscribers = [];
 
 export function createState(initialValue) {
-  let value = initialValue;
+  const key = Object.keys(state).length;
+  state[key] = state[key] ?? initialValue;
 
   const listeners = new Set();
 
-  const state = {
+  const stateObj = {
     get value() {
-      return value;
+      return state[key];
     },
     set(newValue) {
-      value = newValue;
-      subscribers.forEach(fn => fn());
-      listeners.forEach(fn => fn());
+      state[key] = newValue;
+      subscribers.forEach((cb) => cb());
+      listeners.forEach((cb) => cb());
     },
     subscribe(fn) {
       listeners.add(fn);
@@ -20,7 +22,7 @@ export function createState(initialValue) {
     }
   };
 
-  return state;
+  return stateObj;
 }
 
 export function subscribeState(fn) {
