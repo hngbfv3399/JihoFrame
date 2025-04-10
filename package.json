@@ -1,0 +1,11 @@
+{
+  "name": "jiho-frame",
+  "version": "1.0.0",
+  "description": "Jiho's custom UI framework",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "rollup": "^4.0.0"
+  }
+}
