@@ -81,14 +81,12 @@ function renderChildren(el, options) {
 }
 
 export function createElement(tag, options) {
-  // ✅ 함수형 컴포넌트 - 함수 자체만 들어온 경우
   if (typeof tag === "function" && options === undefined) {
     const resolved = tag();
     const [resolvedTag, resolvedValue] = Object.entries(resolved)[0];
     return createElement(resolvedTag, resolvedValue);
   }
 
-  // ✅ 함수형 컴포넌트 - 객체 안에 함수
   if (typeof options === "function") {
     const resolved = options();
     const [resolvedTag, resolvedValue] = Object.entries(resolved)[0];
