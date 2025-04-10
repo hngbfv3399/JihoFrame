@@ -1,4 +1,3 @@
-// 상태 및 콜백 저장소
 let state = {};
 let listenersMap = {};
 let globalSubscribers = [];
