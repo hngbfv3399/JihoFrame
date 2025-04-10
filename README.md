@@ -1,6 +1,7 @@
 # JihoFrame
 
 ## 공지
+
 해당 프로젝트는 테스트 버전입니다.
 코드 작성중 오류가 있을 수 있고 버그가 많습니다.
 최적화 or 안전성은 개나 줘버렸고
@@ -124,7 +125,42 @@ export default App;
 
 ## 컴포넌트
 
-해당 기능은 오류가 있어 수정 예정입니다.
+컴포넌트를 추가 하는 방법은 components 폴더 안에 컴포넌트 이름을 가진 js파일을 생성 하시면 됩니다.
+
+사용 예시)
+
+```js
+//src/App.js
+import { createState } from "jiho-frame";
+import Example from "./components/Example";
+function App() {
+  return {
+    layout: [
+      {
+        Example,
+      },
+    ],
+  };
+}
+
+export default App;
+```
+
+---
+```js
+//src/components/Example.js
+function Example() {
+  return {
+    div:{
+        h1:{
+            text:"hi"
+        }
+    },
+  };
+}
+
+export default Example;
+```
 
 ## 이벤트 헨들러
 
@@ -354,6 +390,6 @@ function App() {
 export default App;
 ```
 
-
 ## 마무리
+
 더 뭔가 추가를 하거나 수정을 해야 하지만 하루종일 이것만 만지니깐 많이 피곤하네요 현재 시간 새벽 5시 00분..
