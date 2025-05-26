@@ -970,6 +970,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ by 김지호**
 
-[⭐ Star this project](https://github.com/your-username/jiho-frame) • [🐛 Report Bug](https://github.com/your-username/jiho-frame/issues) • [💡 Request Feature](https://github.com/your-username/jiho-frame/issues)
+[⭐ Star this project](https://github.com/hngbfv3399/jiho-frame) • [🐛 Report Bug](https://github.com/hngbfv3399/jiho-frame/issues) • [💡 Request Feature](https://github.com/hngbfv3399/jiho-frame/issues)
 
 </div>

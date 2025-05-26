@@ -18,18 +18,18 @@
    # package.json에서 다음 URL들을 실제 저장소로 변경
    "repository": {
      "type": "git",
-     "url": "https://github.com/YOUR_USERNAME/jiho-frame.git"
+     "url": "https://github.com/hngbfv3399/jiho-frame.git"
    },
    "bugs": {
-     "url": "https://github.com/YOUR_USERNAME/jiho-frame/issues"
+     "url": "https://github.com/hngbfv3399/jiho-frame/issues"
    },
-   "homepage": "https://github.com/YOUR_USERNAME/jiho-frame#readme"
+   "homepage": "https://github.com/hngbfv3399/jiho-frame#readme"
    ```
 
 2. **이메일 주소 업데이트**
    ```bash
    # package.json과 git config에서 실제 이메일로 변경
-   git config user.email "your-real-email@example.com"
+   git config user.email "hngbfv3399@gmail.com"
    ```
 
 ## 🐙 GitHub 배포
@@ -42,7 +42,7 @@
 ### 2. 원격 저장소 연결
 ```bash
 # 원격 저장소 추가
-git remote add origin https://github.com/YOUR_USERNAME/jiho-frame.git
+git remote add origin https://github.com/hngbfv3399/jiho-frame.git
 
 # 브랜치 이름을 main으로 설정 (이미 설정되어 있음)
 git branch -M main
