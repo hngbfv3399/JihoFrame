@@ -5,7 +5,7 @@ import { copyFileSync } from 'fs';
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/Jiho/index.js',
+      entry: './src/index.js',
       name: 'JihoFrame',
       fileName: (format) => `jiho-frame.${format}.js`,
       formats: ['es', 'umd'],
