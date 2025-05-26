@@ -14,7 +14,7 @@ const componentNodeMap = new WeakMap();
 function handleError(error, context = 'Unknown') {
   console.error(`JihoFrame Error in ${context}:`, error);
   // 개발 모드에서 더 자세한 정보 제공
-  if (process?.env?.NODE_ENV === 'development') {
+  if (typeof window !== 'undefined' && window.process?.env?.NODE_ENV === 'development') {
     console.trace();
   }
 }
@@ -281,9 +281,15 @@ function renderChildren(el, options) {
         ? safeExecute(childValue, `child component ${childTag}`)
         : childValue;
         
-      if (!resolved) return;
+      if (!resolved || typeof resolved !== 'object') return;
       
-      const [resolvedTag, resolvedValue] = Object.entries(resolved)[0];
+      const entries = Object.entries(resolved);
+      if (entries.length === 0) {
+        console.warn(`JihoFrame: Empty object for child ${childTag}`);
+        return;
+      }
+      
+      const [resolvedTag, resolvedValue] = entries[0];
       const childEl = createElement(resolvedTag, resolvedValue);
       if (childEl) {
         el.appendChild(childEl);
@@ -302,7 +308,13 @@ function renderChildren(el, options) {
           return;
         }
         
-        const [childTag, childOptions] = Object.entries(child)[0];
+        const entries = Object.entries(child);
+        if (entries.length === 0) {
+          console.warn(`JihoFrame: Empty child object at index ${index}`);
+          return;
+        }
+        
+        const [childTag, childOptions] = entries[0];
         const childEl = createElement(childTag, childOptions);
         if (childEl) {
           el.appendChild(childEl);
@@ -324,11 +336,14 @@ function renderChildren(el, options) {
         list.forEach((item, index) => {
           try {
             const rendered = safeExecute(() => options.each.render(item, index), `each render at index ${index}`);
-            if (rendered) {
-              const [tag, value] = Object.entries(rendered)[0];
-              const childEl = createElement(tag, value);
-              if (childEl) {
-                el.appendChild(childEl);
+            if (rendered && typeof rendered === 'object') {
+              const entries = Object.entries(rendered);
+              if (entries.length > 0) {
+                const [tag, value] = entries[0];
+                const childEl = createElement(tag, value);
+                if (childEl) {
+                  el.appendChild(childEl);
+                }
               }
             }
           } catch (error) {
@@ -384,8 +399,16 @@ export function createElement(tag, options) {
       }
       
       // 기존 방식 (단일 엘리먼트)
-      const [resolvedTag, resolvedValue] = Object.entries(resolved)[0];
-      return createElement(resolvedTag, resolvedValue);
+      if (typeof resolved === 'object' && resolved !== null) {
+        const entries = Object.entries(resolved);
+        if (entries.length > 0) {
+          const [resolvedTag, resolvedValue] = entries[0];
+          return createElement(resolvedTag, resolvedValue);
+        }
+      }
+      
+      console.warn('JihoFrame: Component returned invalid object');
+      return null;
     }
 
     // 옵션이 함수인 경우
@@ -393,8 +416,16 @@ export function createElement(tag, options) {
       const resolved = safeExecute(options, 'options function');
       if (!resolved) return null;
       
-      const [resolvedTag, resolvedValue] = Object.entries(resolved)[0];
-      return createElement(resolvedTag, resolvedValue);
+      if (typeof resolved === 'object' && resolved !== null) {
+        const entries = Object.entries(resolved);
+        if (entries.length > 0) {
+          const [resolvedTag, resolvedValue] = entries[0];
+          return createElement(resolvedTag, resolvedValue);
+        }
+      }
+      
+      console.warn('JihoFrame: Options function returned invalid object');
+      return null;
     }
 
     // 간단한 텍스트 노드
@@ -478,7 +509,13 @@ function renderConditionalBlock(value, container) {
           continue;
         }
         
-        const [tag, props] = Object.entries(item)[0];
+        const entries = Object.entries(item);
+        if (entries.length === 0) {
+          console.warn('JihoFrame: Empty conditional item');
+          continue;
+        }
+        
+        const [tag, props] = entries[0];
         if (!props || typeof props !== 'object') continue;
 
         // 조건 평가
@@ -569,12 +606,15 @@ function renderSwitchBlock(switchObj, container) {
         
         if (caseObj.case === switchValue || caseObj.default === true) {
           if (caseObj.element && typeof caseObj.element === 'object') {
-            const [tag, props] = Object.entries(caseObj.element)[0];
-            const element = createElement(tag, props);
-            if (element && container.contains(end)) {
-              container.insertBefore(element, end);
-              currentElement = element;
-              break;
+            const entries = Object.entries(caseObj.element);
+            if (entries.length > 0) {
+              const [tag, props] = entries[0];
+              const element = createElement(tag, props);
+              if (element && container.contains(end)) {
+                container.insertBefore(element, end);
+                currentElement = element;
+                break;
+              }
             }
           }
         }
@@ -634,28 +674,34 @@ class DOMUpdater {
       try {
         if (typeof item === "function") {
           const resolved = safeExecute(item, `layout function at index ${index}`);
-          if (resolved) {
-            const [resolvedTag, resolvedValue] = Object.entries(resolved)[0];
-            const element = createElement(resolvedTag, resolvedValue);
-            if (element) {
-              this.container.appendChild(element);
-              this.currentNodes.push(element);
+          if (resolved && typeof resolved === 'object') {
+            const entries = Object.entries(resolved);
+            if (entries.length > 0) {
+              const [resolvedTag, resolvedValue] = entries[0];
+              const element = createElement(resolvedTag, resolvedValue);
+              if (element) {
+                this.container.appendChild(element);
+                this.currentNodes.push(element);
+              }
             }
           }
         } else if (item && typeof item === 'object') {
-          const [tag, value] = Object.entries(item)[0];
-          
-          if (tag === "condition" && Array.isArray(value)) {
-            const cleanup = renderConditionalBlock(value, this.container);
-            if (cleanup) this.cleanupFunctions.push(cleanup);
-          } else if (tag === "switchBlock") {
-            const cleanup = renderSwitchBlock(value, this.container);
-            if (cleanup) this.cleanupFunctions.push(cleanup);
-          } else {
-            const element = createElement(tag, value);
-            if (element) {
-              this.container.appendChild(element);
-              this.currentNodes.push(element);
+          const entries = Object.entries(item);
+          if (entries.length > 0) {
+            const [tag, value] = entries[0];
+            
+            if (tag === "condition" && Array.isArray(value)) {
+              const cleanup = renderConditionalBlock(value, this.container);
+              if (cleanup) this.cleanupFunctions.push(cleanup);
+            } else if (tag === "switchBlock") {
+              const cleanup = renderSwitchBlock(value, this.container);
+              if (cleanup) this.cleanupFunctions.push(cleanup);
+            } else {
+              const element = createElement(tag, value);
+              if (element) {
+                this.container.appendChild(element);
+                this.currentNodes.push(element);
+              }
             }
           }
         }

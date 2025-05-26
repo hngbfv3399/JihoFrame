@@ -1,217 +1,217 @@
-let b = {}, m = {}, F = [], w = /* @__PURE__ */ new WeakMap(), j = /* @__PURE__ */ new Set(), A = !1, S = [], k = [], x = /* @__PURE__ */ new Map(), _ = [];
-function N() {
+let p = {}, b = {}, x = [], y = /* @__PURE__ */ new WeakMap(), C = /* @__PURE__ */ new Set(), A = !1, $ = [], k = [], F = /* @__PURE__ */ new Map(), _ = [];
+function O() {
   if (A)
     return;
   A = !0;
-  const e = Array.from(j);
-  j.clear(), [...new Set(e)].forEach((n) => {
+  const e = Array.from(C);
+  C.clear(), [...new Set(e)].forEach((o) => {
     try {
-      n();
-    } catch (r) {
-      console.error("JihoFrame: 업데이트 중 오류 발생:", r);
+      o();
+    } catch (n) {
+      console.error("JihoFrame: 업데이트 중 오류 발생:", n);
     }
   }), A = !1;
 }
-function O() {
-  j.size > 0 && Promise.resolve().then(N);
+function M() {
+  C.size > 0 && Promise.resolve().then(O);
 }
-function R(e) {
+function z(e) {
   if (typeof e != "function") {
     console.warn("JihoFrame: jihoInit expects a function");
     return;
   }
-  S.push(e);
+  $.push(e);
 }
-function z(e) {
+function P(e) {
   if (typeof e != "function") {
     console.warn("JihoFrame: jihoMount expects a function");
     return;
   }
   k.push(e);
 }
-function P(e, t) {
+function Q(e, t) {
   if (typeof e != "function") {
     console.warn("JihoFrame: jihoUpdate expects a function as first parameter");
     return;
   }
-  x.has(t) || x.set(t, []), x.get(t).push(e);
+  F.has(t) || F.set(t, []), F.get(t).push(e);
 }
-function Q(e) {
+function W(e) {
   if (typeof e != "function") {
     console.warn("JihoFrame: jihoUnMount expects a function");
     return;
   }
   _.push(e);
 }
-function W(e) {
-  w.has(e) && (w.get(e).forEach((n) => n()), w.delete(e));
+function G(e) {
+  y.has(e) && (y.get(e).forEach((o) => o()), y.delete(e));
 }
-function M(e, t) {
+function T(e, t) {
   if (typeof e != "string")
     throw new Error("JihoFrame: State key must be a string");
-  e in b || (b[e] = t, m[e] = /* @__PURE__ */ new Set());
-  const n = {
+  e in p || (p[e] = t, b[e] = /* @__PURE__ */ new Set());
+  const o = {
     // 일관된 API - value 프로퍼티로 통일
     get value() {
-      return b[e];
+      return p[e];
     },
-    set value(r) {
-      b[e] !== r && (b[e] = r, F.forEach((c) => j.add(c)), x.has(n) && x.get(n).forEach((c) => j.add(c)), m[e].forEach((c) => j.add(c)), O());
+    set value(n) {
+      p[e] !== n && (p[e] = n, x.forEach((r) => C.add(r)), F.has(o) && F.get(o).forEach((r) => C.add(r)), b[e].forEach((r) => C.add(r)), M());
     },
     // 기존 API 호환성 유지
-    get: () => b[e],
-    set: (r) => {
-      n.value = r;
+    get: () => p[e],
+    set: (n) => {
+      o.value = n;
     },
-    subscribe: (r, c = null) => {
-      if (typeof r != "function")
+    subscribe: (n, r = null) => {
+      if (typeof n != "function")
         return console.warn("JihoFrame: subscribe expects a function"), () => {
         };
-      m[e].add(r);
-      const o = () => m[e].delete(r);
-      return c && (w.has(c) || w.set(c, []), w.get(c).push(o)), o;
+      b[e].add(n);
+      const c = () => b[e].delete(n);
+      return r && (y.has(r) || y.set(r, []), y.get(r).push(c)), c;
     }
   };
-  return n.get._setter = n.set, n;
+  return o.get._setter = o.set, o;
 }
-function v(e, t = null) {
+function j(e, t = null) {
   if (typeof e != "function")
     return console.warn("JihoFrame: subscribeState expects a function"), () => {
     };
-  F.push(e);
-  const n = () => {
-    const r = F.indexOf(e);
-    r > -1 && F.splice(r, 1);
+  x.push(e);
+  const o = () => {
+    const n = x.indexOf(e);
+    n > -1 && x.splice(n, 1);
   };
-  return t && (w.has(t) || w.set(t, []), w.get(t).push(n)), n;
+  return t && (y.has(t) || y.set(t, []), y.get(t).push(o)), o;
 }
-function G() {
-  return { ...b };
+function H() {
+  return { ...p };
 }
-function T(e) {
-  e ? (delete b[e], m[e] && m[e].clear()) : (b = {}, Object.values(m).forEach((t) => t.clear()), m = {});
+function B(e) {
+  e ? (delete p[e], b[e] && b[e].clear()) : (p = {}, Object.values(b).forEach((t) => t.clear()), b = {});
 }
-function H(e, t) {
+function X(e, t) {
   if (typeof t != "function")
     return console.warn("JihoFrame: watchState callback must be a function"), () => {
     };
-  if (!m[e])
+  if (!b[e])
     return console.warn(`JihoFrame: State key "${e}" does not exist`), () => {
     };
-  const n = (r, c) => {
+  const o = (n, r) => {
     try {
-      t(r, c, e);
-    } catch (o) {
-      V(o, `watchState callback for ${e}`);
+      t(n, r, e);
+    } catch (c) {
+      D(c, `watchState callback for ${e}`);
     }
   };
-  return m[e].add(n), () => m[e].delete(n);
+  return b[e].add(o), () => b[e].delete(o);
 }
-function B(e, t) {
+function V(e, t) {
   if (!Array.isArray(e))
     throw new Error("JihoFrame: combineStates expects an array of state objects");
   if (typeof t != "function")
     throw new Error("JihoFrame: combineStates expects a combiner function");
-  const n = `combined_${Date.now()}_${Math.random()}`, r = () => {
-    const i = e.map((f) => f.value), a = t(...i);
-    b[n] !== a && (b[n] = a);
+  const o = `combined_${Date.now()}_${Math.random()}`, n = () => {
+    const a = e.map((f) => f.value), i = t(...a);
+    p[o] !== i && (p[o] = i);
   };
-  r();
-  const c = e.map(
-    (i) => i.subscribe(r)
-  ), o = M(n, b[n]);
-  return o.cleanup = () => {
-    c.forEach((i) => i()), T(n);
-  }, o;
+  n();
+  const r = e.map(
+    (a) => a.subscribe(n)
+  ), c = T(o, p[o]);
+  return c.cleanup = () => {
+    r.forEach((a) => a()), B(o);
+  }, c;
 }
-function X(e, t) {
+function Y(e, t) {
   if (!Array.isArray(e))
     throw new Error("JihoFrame: computedState expects an array of dependencies");
   if (typeof t != "function")
     throw new Error("JihoFrame: computedState expects a computer function");
-  return B(e, t);
+  return V(e, t);
 }
-function V(e, t = "Unknown") {
-  var n, r;
-  console.error(`JihoFrame Error in ${t}:`, e), typeof window < "u" && ((r = (n = window.process) == null ? void 0 : n.env) == null ? void 0 : r.NODE_ENV) === "development" && console.trace();
+function D(e, t = "Unknown") {
+  var o, n;
+  console.error(`JihoFrame Error in ${t}:`, e), typeof window < "u" && ((n = (o = window.process) == null ? void 0 : o.env) == null ? void 0 : n.NODE_ENV) === "development" && console.trace();
 }
 function d(e, t = "Unknown") {
-  var n;
-  console.error(`JihoFrame Error in ${t}:`, e), ((n = process == null ? void 0 : process.env) == null ? void 0 : n.NODE_ENV) === "development" && console.trace();
+  var o, n;
+  console.error(`JihoFrame Error in ${t}:`, e), typeof window < "u" && ((n = (o = window.process) == null ? void 0 : o.env) == null ? void 0 : n.NODE_ENV) === "development" && console.trace();
 }
-function h(e, t = "function", n = null) {
+function h(e, t = "function", o = null) {
   try {
     return e();
-  } catch (r) {
-    return d(r, t), n;
+  } catch (n) {
+    return d(n, t), o;
   }
 }
-function J(e, t, n) {
-  return t === "function" && typeof e != "function" ? (console.warn(`JihoFrame: Expected function in ${n}, got ${typeof e}`), !1) : !0;
+function S(e, t, o) {
+  return t === "function" && typeof e != "function" ? (console.warn(`JihoFrame: Expected function in ${o}, got ${typeof e}`), !1) : !0;
 }
-function C(e, t, n = "text") {
+function g(e, t, o = "text") {
   if (typeof t == "function") {
-    const r = () => {
-      const o = h(t, "bindValue update");
-      o !== null && (n === "checkbox" ? e.checked = !!o : n === "radio" ? e.checked = e.value === o : e.value = o);
+    const n = () => {
+      const c = h(t, "bindValue update");
+      c !== null && (o === "checkbox" ? e.checked = !!c : o === "radio" ? e.checked = e.value === c : e.value = c);
     };
-    r();
-    const c = v(r);
-    e._jihoUnsubscribers ? e._jihoUnsubscribers.push(c) : e._jihoUnsubscribers = [c], e.addEventListener("input", (o) => {
+    n();
+    const r = j(n);
+    e._jihoUnsubscribers ? e._jihoUnsubscribers.push(r) : e._jihoUnsubscribers = [r], e.addEventListener("input", (c) => {
       if (t._setter)
         try {
-          n === "checkbox" ? t._setter(o.target.checked) : n === "radio" ? o.target.checked && t._setter(o.target.value) : t._setter(o.target.value);
-        } catch (i) {
-          d(i, "input event handler");
+          o === "checkbox" ? t._setter(c.target.checked) : o === "radio" ? c.target.checked && t._setter(c.target.value) : t._setter(c.target.value);
+        } catch (a) {
+          d(a, "input event handler");
         }
     });
   } else
-    n === "checkbox" ? e.checked = !!t : n === "radio" ? e.checked = e.value === t : e.value = t;
+    o === "checkbox" ? e.checked = !!t : o === "radio" ? e.checked = e.value === t : e.value = t;
 }
-function D(e, t, n) {
+function I(e, t, o) {
   if (!t || typeof t != "object") {
     console.warn("JihoFrame: Invalid options passed to applyAttributes");
     return;
   }
-  const { text: r, style: c, id: o, className: i, event: a } = t;
-  if (typeof r == "function") {
+  const { text: n, style: r, id: c, className: a, event: i } = t;
+  if (typeof n == "function") {
     const u = () => {
-      const l = h(r, "text update");
+      const l = h(n, "text update");
       l !== null && (e.textContent = l);
     };
     u();
-    const s = v(u);
+    const s = j(u);
     e._jihoUnsubscribers ? e._jihoUnsubscribers.push(s) : e._jihoUnsubscribers = [s];
   } else
-    r !== void 0 && (e.textContent = r);
-  if (c && typeof c == "object")
+    n !== void 0 && (e.textContent = n);
+  if (r && typeof r == "object")
     try {
-      Object.assign(e.style, c);
+      Object.assign(e.style, r);
     } catch (u) {
       d(u, "style application");
     }
-  if (o && (e.id = o), i && (e.className = i), Array.isArray(a))
-    a.forEach((u) => {
+  if (c && (e.id = c), a && (e.className = a), Array.isArray(i))
+    i.forEach((u) => {
       if (typeof u != "object") {
         console.warn("JihoFrame: Event object must be an object");
         return;
       }
       for (const [s, l] of Object.entries(u)) {
-        if (!J(l, "function", `event ${s}`))
+        if (!S(l, "function", `event ${s}`))
           continue;
-        const p = s.toLowerCase().replace(/^on/, "");
-        e.addEventListener(p, (y) => {
-          h(() => l(y), `event handler ${s}`);
+        const E = s.toLowerCase().replace(/^on/, "");
+        e.addEventListener(E, (m) => {
+          h(() => l(m), `event handler ${s}`);
         });
       }
     });
-  else if (a && typeof a == "object")
-    for (const [u, s] of Object.entries(a)) {
-      if (!J(s, "function", `event ${u}`))
+  else if (i && typeof i == "object")
+    for (const [u, s] of Object.entries(i)) {
+      if (!S(s, "function", `event ${u}`))
         continue;
       const l = u.toLowerCase().replace(/^on/, "");
-      e.addEventListener(l, (p) => {
-        h(() => s(p), `event handler ${u}`);
+      e.addEventListener(l, (E) => {
+        h(() => s(E), `event handler ${u}`);
       });
     }
   const f = (u) => {
@@ -224,7 +224,7 @@ function D(e, t, n) {
         }
     });
   };
-  switch (n) {
+  switch (o) {
     case "input":
       f([
         "type",
@@ -235,22 +235,22 @@ function D(e, t, n) {
         "name"
       ]);
       const u = t.type || "text";
-      C(e, t.value, u);
+      g(e, t.value, u);
       break;
     case "textarea":
-      f(["placeholder", "required", "rows", "cols"]), C(e, t.value);
+      f(["placeholder", "required", "rows", "cols"]), g(e, t.value);
       break;
     case "select":
       f(["multiple", "required", "name"]), Array.isArray(t.options) && t.options.forEach((s) => {
         const l = document.createElement("option");
         typeof s == "string" ? (l.value = s, l.textContent = s) : s && typeof s == "object" && (l.value = s.value || "", l.textContent = s.label || s.value || ""), e.appendChild(l);
-      }), C(e, t.value);
+      }), g(e, t.value);
       break;
     case "checkbox":
-      C(e, t.value, "checkbox");
+      g(e, t.value, "checkbox");
       break;
     case "radio":
-      C(e, t.value, "radio");
+      g(e, t.value, "radio");
       break;
   }
   if (typeof t.disabled == "function") {
@@ -259,7 +259,7 @@ function D(e, t, n) {
       l !== null && (e.disabled = !!l);
     };
     u();
-    const s = v(u);
+    const s = j(u);
     e._jihoUnsubscribers ? e._jihoUnsubscribers.push(s) : e._jihoUnsubscribers = [s];
   } else
     t.disabled !== void 0 && (e.disabled = !!t.disabled);
@@ -269,16 +269,16 @@ function D(e, t, n) {
       l !== null && (e.style.display = l ? "" : "none");
     };
     u();
-    const s = v(u);
+    const s = j(u);
     e._jihoUnsubscribers ? e._jihoUnsubscribers.push(s) : e._jihoUnsubscribers = [s];
   } else
     t.show === !1 && (e.style.display = "none");
 }
-function I(e, t) {
-  var r;
+function L(e, t) {
+  var n;
   if (!t || typeof t != "object")
     return;
-  const n = /* @__PURE__ */ new Set([
+  const o = /* @__PURE__ */ new Set([
     "text",
     "style",
     "id",
@@ -303,121 +303,151 @@ function I(e, t) {
     "show",
     "disabled"
   ]);
-  if (Object.entries(t).forEach(([c, o]) => {
-    if (!n.has(c))
+  if (Object.entries(t).forEach(([r, c]) => {
+    if (!o.has(r))
       try {
-        const i = typeof o == "function" ? h(o, `child component ${c}`) : o;
-        if (!i)
+        const a = typeof c == "function" ? h(c, `child component ${r}`) : c;
+        if (!a || typeof a != "object")
           return;
-        const [a, f] = Object.entries(i)[0], u = E(a, f);
-        u && e.appendChild(u);
-      } catch (i) {
-        d(i, `rendering child ${c}`);
+        const i = Object.entries(a);
+        if (i.length === 0) {
+          console.warn(`JihoFrame: Empty object for child ${r}`);
+          return;
+        }
+        const [f, u] = i[0], s = w(f, u);
+        s && e.appendChild(s);
+      } catch (a) {
+        d(a, `rendering child ${r}`);
       }
-  }), Array.isArray(t.children) && t.children.forEach((c, o) => {
+  }), Array.isArray(t.children) && t.children.forEach((r, c) => {
     try {
-      if (!c || typeof c != "object") {
-        console.warn(`JihoFrame: Invalid child at index ${o}`);
+      if (!r || typeof r != "object") {
+        console.warn(`JihoFrame: Invalid child at index ${c}`);
         return;
       }
-      const [i, a] = Object.entries(c)[0], f = E(i, a);
-      f && e.appendChild(f);
-    } catch (i) {
-      d(i, `rendering child at index ${o}`);
+      const a = Object.entries(r);
+      if (a.length === 0) {
+        console.warn(`JihoFrame: Empty child object at index ${c}`);
+        return;
+      }
+      const [i, f] = a[0], u = w(i, f);
+      u && e.appendChild(u);
+    } catch (a) {
+      d(a, `rendering child at index ${c}`);
     }
-  }), (r = t.each) != null && r.list)
+  }), (n = t.each) != null && n.list)
     try {
-      const c = typeof t.each.list == "function" ? h(t.each.list, "each list function") : t.each.list;
-      Array.isArray(c) && typeof t.each.render == "function" && c.forEach((o, i) => {
+      const r = typeof t.each.list == "function" ? h(t.each.list, "each list function") : t.each.list;
+      Array.isArray(r) && typeof t.each.render == "function" && r.forEach((c, a) => {
         try {
-          const a = h(() => t.each.render(o, i), `each render at index ${i}`);
-          if (a) {
-            const [f, u] = Object.entries(a)[0], s = E(f, u);
-            s && e.appendChild(s);
+          const i = h(() => t.each.render(c, a), `each render at index ${a}`);
+          if (i && typeof i == "object") {
+            const f = Object.entries(i);
+            if (f.length > 0) {
+              const [u, s] = f[0], l = w(u, s);
+              l && e.appendChild(l);
+            }
           }
-        } catch (a) {
-          d(a, `each item rendering at index ${i}`);
+        } catch (i) {
+          d(i, `each item rendering at index ${a}`);
         }
       });
-    } catch (c) {
-      d(c, "each list processing");
+    } catch (r) {
+      d(r, "each list processing");
     }
 }
-function g(e) {
+function J(e) {
   e._jihoUnsubscribers && (e._jihoUnsubscribers.forEach((t) => {
     try {
       t();
-    } catch (n) {
-      d(n, "cleanup unsubscribe");
+    } catch (o) {
+      d(o, "cleanup unsubscribe");
     }
-  }), delete e._jihoUnsubscribers), Array.from(e.children).forEach((t) => g(t));
+  }), delete e._jihoUnsubscribers), Array.from(e.children).forEach((t) => J(t));
 }
-function E(e, t) {
+function w(e, t) {
   try {
     if (typeof e == "function") {
-      const r = h(() => e(t), `component ${e.name || "anonymous"}`);
-      if (!r)
+      const n = h(() => e(t), `component ${e.name || "anonymous"}`);
+      if (!n)
         return null;
-      if (r.nodeType)
-        return r;
-      if (r.layout) {
-        const i = document.createElement("div");
-        return i.style.display = "contents", new $(i).update(r.layout), i;
+      if (n.nodeType)
+        return n;
+      if (n.layout) {
+        const r = document.createElement("div");
+        return r.style.display = "contents", new N(r).update(n.layout), r;
       }
-      const [c, o] = Object.entries(r)[0];
-      return E(c, o);
+      if (typeof n == "object" && n !== null) {
+        const r = Object.entries(n);
+        if (r.length > 0) {
+          const [c, a] = r[0];
+          return w(c, a);
+        }
+      }
+      return console.warn("JihoFrame: Component returned invalid object"), null;
     }
     if (typeof t == "function") {
-      const r = h(t, "options function");
-      if (!r)
+      const n = h(t, "options function");
+      if (!n)
         return null;
-      const [c, o] = Object.entries(r)[0];
-      return E(c, o);
+      if (typeof n == "object" && n !== null) {
+        const r = Object.entries(n);
+        if (r.length > 0) {
+          const [c, a] = r[0];
+          return w(c, a);
+        }
+      }
+      return console.warn("JihoFrame: Options function returned invalid object"), null;
     }
     if (typeof t == "string") {
-      const r = document.createElement(e);
-      return r.textContent = t, r;
+      const n = document.createElement(e);
+      return n.textContent = t, n;
     }
     if (typeof e != "string")
       return console.warn("JihoFrame: Tag must be a string, got:", typeof e), null;
-    const n = document.createElement(e);
-    return t && (D(n, t, e), I(n, t)), n;
-  } catch (n) {
-    return d(n, `createElement for tag ${e}`), null;
+    const o = document.createElement(e);
+    return t && (I(o, t, e), L(o, t)), o;
+  } catch (o) {
+    return d(o, `createElement for tag ${e}`), null;
   }
 }
-function L(e, t) {
+function q(e, t) {
   if (!Array.isArray(e)) {
     console.warn("JihoFrame: Conditional block value must be an array");
     return;
   }
-  let n = document.createComment("condition-start"), r = document.createComment("condition-end"), c = null, o = [];
-  t.appendChild(n), t.appendChild(r);
-  const i = () => {
-    c && (g(c), c.parentNode && c.parentNode.removeChild(c), c = null), o.forEach((u) => {
+  let o = document.createComment("condition-start"), n = document.createComment("condition-end"), r = null, c = [];
+  t.appendChild(o), t.appendChild(n);
+  const a = () => {
+    r && (J(r), r.parentNode && r.parentNode.removeChild(r), r = null), c.forEach((u) => {
       try {
         u();
       } catch (s) {
         d(s, "conditional cleanup unsubscribe");
       }
-    }), o = [];
-  }, a = () => {
+    }), c = [];
+  }, i = () => {
     try {
-      t.contains(r) || (r = document.createComment("condition-end"), t.appendChild(r)), i();
+      t.contains(n) || (n = document.createComment("condition-end"), t.appendChild(n)), a();
       let u = !1;
       for (const s of e) {
         if (!s || typeof s != "object") {
           console.warn("JihoFrame: Invalid conditional item");
           continue;
         }
-        const [l, p] = Object.entries(s)[0];
-        if (!p || typeof p != "object")
+        const l = Object.entries(s);
+        if (l.length === 0) {
+          console.warn("JihoFrame: Empty conditional item");
           continue;
-        const y = p.if ?? (u ? !1 : p.elseIf ?? p.else);
-        if ((typeof y == "function" ? h(y, "conditional condition") : y) && !u) {
-          const U = E(l, p);
-          if (U && t.contains(r)) {
-            t.insertBefore(U, r), c = U, u = !0;
+        }
+        const [E, m] = l[0];
+        if (!m || typeof m != "object")
+          continue;
+        const v = m.if ?? (u ? !1 : m.elseIf ?? m.else);
+        if ((typeof v == "function" ? h(v, "conditional condition") : v) && !u) {
+          const U = w(E, m);
+          if (U && t.contains(n)) {
+            t.insertBefore(U, n), r = U, u = !0;
             break;
           }
         }
@@ -425,27 +455,27 @@ function L(e, t) {
     } catch (u) {
       d(u, "conditional block rerender");
     }
-  }, f = v(a);
-  return o.push(f), a(), i;
+  }, f = j(i);
+  return c.push(f), i(), a;
 }
-function q(e, t) {
+function K(e, t) {
   if (!e || typeof e != "object") {
     console.warn("JihoFrame: Switch block must be an object");
     return;
   }
-  let n = document.createComment("switch-start"), r = document.createComment("switch-end"), c = null, o = [];
-  t.appendChild(n), t.appendChild(r);
-  const i = () => {
-    c && (g(c), c.parentNode && c.parentNode.removeChild(c), c = null), o.forEach((u) => {
+  let o = document.createComment("switch-start"), n = document.createComment("switch-end"), r = null, c = [];
+  t.appendChild(o), t.appendChild(n);
+  const a = () => {
+    r && (J(r), r.parentNode && r.parentNode.removeChild(r), r = null), c.forEach((u) => {
       try {
         u();
       } catch (s) {
         d(s, "switch cleanup unsubscribe");
       }
-    }), o = [];
-  }, a = () => {
+    }), c = [];
+  }, i = () => {
     try {
-      t.contains(r) || (r = document.createComment("switch-end"), t.appendChild(r)), i();
+      t.contains(n) || (n = document.createComment("switch-end"), t.appendChild(n)), a();
       const u = typeof e.switch == "function" ? h(e.switch, "switch value function") : e.switch;
       if (!Array.isArray(e.cases)) {
         console.warn("JihoFrame: Switch cases must be an array");
@@ -453,31 +483,34 @@ function q(e, t) {
       }
       for (const s of e.cases)
         if (!(!s || typeof s != "object") && (s.case === u || s.default === !0) && s.element && typeof s.element == "object") {
-          const [l, p] = Object.entries(s.element)[0], y = E(l, p);
-          if (y && t.contains(r)) {
-            t.insertBefore(y, r), c = y;
-            break;
+          const l = Object.entries(s.element);
+          if (l.length > 0) {
+            const [E, m] = l[0], v = w(E, m);
+            if (v && t.contains(n)) {
+              t.insertBefore(v, n), r = v;
+              break;
+            }
           }
         }
     } catch (u) {
       d(u, "switch block rerender");
     }
-  }, f = v(a);
-  return o.push(f), a(), i;
+  }, f = j(i);
+  return c.push(f), i(), a;
 }
-class $ {
+class N {
   constructor(t) {
     this.container = t, this.currentNodes = [], this.cleanupFunctions = [];
   }
   // 기존 노드들 정리
   cleanup() {
     this.currentNodes.forEach((t) => {
-      t && t.parentNode && (g(t), t.parentNode.removeChild(t));
+      t && t.parentNode && (J(t), t.parentNode.removeChild(t));
     }), this.cleanupFunctions.forEach((t) => {
       try {
         t();
-      } catch (n) {
-        d(n, "DOM updater cleanup");
+      } catch (o) {
+        d(o, "DOM updater cleanup");
       }
     }), this.currentNodes = [], this.cleanupFunctions = [];
   }
@@ -487,101 +520,107 @@ class $ {
       console.warn("JihoFrame: Layout must be an array");
       return;
     }
-    t.forEach((n, r) => {
+    t.forEach((o, n) => {
       try {
-        if (typeof n == "function") {
-          const c = h(n, `layout function at index ${r}`);
-          if (c) {
-            const [o, i] = Object.entries(c)[0], a = E(o, i);
-            a && (this.container.appendChild(a), this.currentNodes.push(a));
+        if (typeof o == "function") {
+          const r = h(o, `layout function at index ${n}`);
+          if (r && typeof r == "object") {
+            const c = Object.entries(r);
+            if (c.length > 0) {
+              const [a, i] = c[0], f = w(a, i);
+              f && (this.container.appendChild(f), this.currentNodes.push(f));
+            }
           }
-        } else if (n && typeof n == "object") {
-          const [c, o] = Object.entries(n)[0];
-          if (c === "condition" && Array.isArray(o)) {
-            const i = L(o, this.container);
-            i && this.cleanupFunctions.push(i);
-          } else if (c === "switchBlock") {
-            const i = q(o, this.container);
-            i && this.cleanupFunctions.push(i);
-          } else {
-            const i = E(c, o);
-            i && (this.container.appendChild(i), this.currentNodes.push(i));
+        } else if (o && typeof o == "object") {
+          const r = Object.entries(o);
+          if (r.length > 0) {
+            const [c, a] = r[0];
+            if (c === "condition" && Array.isArray(a)) {
+              const i = q(a, this.container);
+              i && this.cleanupFunctions.push(i);
+            } else if (c === "switchBlock") {
+              const i = K(a, this.container);
+              i && this.cleanupFunctions.push(i);
+            } else {
+              const i = w(c, a);
+              i && (this.container.appendChild(i), this.currentNodes.push(i));
+            }
           }
         }
-      } catch (c) {
-        d(c, `rendering layout item at index ${r}`);
+      } catch (r) {
+        d(r, `rendering layout item at index ${n}`);
       }
     });
   }
 }
-function Y(e, t) {
+function Z(e, t) {
   if (typeof e != "function")
     throw new Error("JihoFrame: App must be a function");
   if (!t || !t.appendChild)
     throw new Error("JihoFrame: Container must be a valid DOM element");
-  S.forEach((a) => {
+  $.forEach((i) => {
     try {
-      a();
+      i();
     } catch (f) {
       d(f, "init callback");
     }
   });
-  const n = new $(t);
-  let r = [];
-  const c = () => {
+  const o = new N(t);
+  let n = [];
+  const r = () => {
     try {
-      const a = h(e, "app function");
-      if (!a)
+      const i = h(e, "app function");
+      if (!i)
         return;
-      if (!a.layout) {
+      if (!i.layout) {
         console.warn("JihoFrame: App function must return an object with layout property");
         return;
       }
-      n.update(a.layout), k.forEach((f) => {
+      o.update(i.layout), k.forEach((f) => {
         try {
           f();
         } catch (u) {
           d(u, "mount callback");
         }
       });
-    } catch (a) {
-      d(a, "app rerender");
+    } catch (i) {
+      d(i, "app rerender");
     }
-  }, o = v(c);
-  r.push(o), c();
-  const i = () => {
+  }, c = j(r);
+  n.push(c), r();
+  const a = () => {
     try {
-      _.forEach((a) => {
+      _.forEach((i) => {
         try {
-          a();
+          i();
         } catch (f) {
           d(f, "unmount callback");
         }
-      }), n.cleanup(), r.forEach((a) => {
+      }), o.cleanup(), n.forEach((i) => {
         try {
-          a();
+          i();
         } catch (f) {
           d(f, "app unsubscribe");
         }
       });
-    } catch (a) {
-      d(a, "app cleanup");
+    } catch (i) {
+      d(i, "app cleanup");
     }
   };
-  return window.addEventListener("beforeunload", i), i;
+  return window.addEventListener("beforeunload", a), a;
 }
 export {
-  B as combineStates,
-  X as computedState,
-  M as createState,
-  G as getStateSnapshot,
-  R as jihoInit,
-  z as jihoMount,
-  Q as jihoUnMount,
-  P as jihoUpdate,
-  Y as renderApp,
-  T as resetState,
-  v as subscribeState,
-  W as unsubscribeAll,
-  H as watchState
+  V as combineStates,
+  Y as computedState,
+  T as createState,
+  H as getStateSnapshot,
+  z as jihoInit,
+  P as jihoMount,
+  W as jihoUnMount,
+  Q as jihoUpdate,
+  Z as renderApp,
+  B as resetState,
+  j as subscribeState,
+  G as unsubscribeAll,
+  X as watchState
 };
