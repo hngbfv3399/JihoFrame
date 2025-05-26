@@ -1,7 +1,7 @@
 {
   "name": "jiho-frame",
   "version": "2.0.0",
-  "description": "A lightweight, performant reactive UI library with Flutter-inspired syntax. Now with optimized rendering, memory leak prevention, and enhanced developer experience.",
+  "description": "A lightweight, performant reactive UI library with Flutter-inspired syntax. Features smart DOM updates, memory leak prevention, enhanced error handling, and comprehensive developer tools.",
   "main": "dist/jiho-frame.umd.js",
   "module": "dist/jiho-frame.es.js",
   "exports": {
@@ -12,7 +12,9 @@
   },
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "vite build",
@@ -25,9 +27,18 @@
     "lightweight",
     "javascript",
     "frontend",
-    "declarative-ui"
+    "declarative-ui",
+    "virtual-dom",
+    "state-management",
+    "component-system",
+    "performance",
+    "memory-safe",
+    "typescript"
   ],
-  "author": "김지호",
+  "author": {
+    "name": "김지호",
+    "email": "your-email@example.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -36,5 +47,11 @@
   "bugs": {
     "url": "https://github.com/your-username/jiho-frame/issues"
   },
-  "homepage": "https://github.com/your-username/jiho-frame#readme"
+  "homepage": "https://github.com/your-username/jiho-frame#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "vite": "^4.3.9"
+  }
 }
