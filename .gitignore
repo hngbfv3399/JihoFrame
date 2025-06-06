@@ -44,6 +44,9 @@ Thumbs.db
 coverage/
 *.lcov
 
+# Test coverage reports
+test/coverage/
+
 # nyc test coverage
 .nyc_output
 
@@ -86,3 +89,18 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# 번들 분석
+bundle-analyzer-report.html
+bundle-analysis-report.md
+bundle-size-history.json
+
+# 벤치마크 결과
+benchmark-results/
+performance-*.html
+
+# Prettier 캐시
+.prettierrc
+
+# 개발 도구 리포트
+tools/reports/

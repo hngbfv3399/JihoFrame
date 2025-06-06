@@ -6,6 +6,15 @@ import {
   unsubscribeAll,
 } from "./jihoFunc.js";
 
+// JihoUI 컴포넌트들 import
+import { 
+  JihoHeader, 
+  JihoNav, 
+  JihoSection, 
+  JihoGrid 
+} from "./jihoUI/jihoLayout.js";
+import { JihoButton } from "./jihoUI/JihoButton.js";
+
 // DOM 노드 추적을 위한 WeakMap
 const nodeComponentMap = new WeakMap();
 const componentNodeMap = new WeakMap();
@@ -89,15 +98,17 @@ function bindValue(el, value, type = "text") {
   }
 }
 
-function applyAttributes(el, options, tag) {
-  if (!options || typeof options !== 'object') {
-    console.warn('JihoFrame: Invalid options passed to applyAttributes');
-    return;
+// 구독 해제 관리 헬퍼 함수
+function addUnsubscriber(el, unsubscribe) {
+  if (el._jihoUnsubscribers) {
+    el._jihoUnsubscribers.push(unsubscribe);
+  } else {
+    el._jihoUnsubscribers = [unsubscribe];
   }
+}
 
-  const { text, style, id, className, event } = options;
-
-  // 텍스트 처리 개선
+// 텍스트 속성 처리
+function applyTextAttribute(el, text) {
   if (typeof text === "function") {
     const updateText = () => {
       const newText = safeExecute(text, 'text update');
@@ -108,17 +119,14 @@ function applyAttributes(el, options, tag) {
     
     updateText();
     const unsubscribe = subscribeState(updateText);
-    
-    if (el._jihoUnsubscribers) {
-      el._jihoUnsubscribers.push(unsubscribe);
-    } else {
-      el._jihoUnsubscribers = [unsubscribe];
-    }
+    addUnsubscriber(el, unsubscribe);
   } else if (text !== undefined) {
     el.textContent = text;
   }
+}
 
-  // 스타일 적용 개선
+// 스타일 속성 처리
+function applyStyleAttribute(el, style) {
   if (style && typeof style === 'object') {
     try {
       Object.assign(el.style, style);
@@ -126,87 +134,84 @@ function applyAttributes(el, options, tag) {
       handleError(error, 'style application');
     }
   }
-  
-  if (id) el.id = id;
-  if (className) el.className = className;
+}
 
-  // 이벤트 처리 개선 - 더 간단한 API 지원
+// 이벤트 처리
+function applyEventHandlers(el, event) {
   if (Array.isArray(event)) {
     event.forEach((evtObj) => {
       if (typeof evtObj !== 'object') {
         console.warn('JihoFrame: Event object must be an object');
         return;
       }
-      
-      for (const [evtName, handler] of Object.entries(evtObj)) {
-        if (!validateValue(handler, 'function', `event ${evtName}`)) continue;
-        
-        const eventType = evtName.toLowerCase().replace(/^on/, "");
-        el.addEventListener(eventType, (e) => {
-          safeExecute(() => handler(e), `event handler ${evtName}`);
-        });
-      }
+      applyEventObject(el, evtObj);
     });
   } else if (event && typeof event === 'object') {
-    // 단순한 객체 형태도 지원: { onClick: handler, onInput: handler }
-    for (const [evtName, handler] of Object.entries(event)) {
-      if (!validateValue(handler, 'function', `event ${evtName}`)) continue;
-      
-      const eventType = evtName.toLowerCase().replace(/^on/, "");
-      el.addEventListener(eventType, (e) => {
-        safeExecute(() => handler(e), `event handler ${evtName}`);
-      });
-    }
+    applyEventObject(el, event);
   }
+}
 
-  const applyInputAttrs = (attrs) => {
-    attrs.forEach((attr) => {
-      if (attr in options) {
-        try {
-          el[attr] = options[attr];
-        } catch (error) {
-          handleError(error, `setting attribute ${attr}`);
-        }
-      }
+// 단일 이벤트 객체 처리
+function applyEventObject(el, eventObj) {
+  for (const [evtName, handler] of Object.entries(eventObj)) {
+    if (!validateValue(handler, 'function', `event ${evtName}`)) continue;
+    
+    const eventType = evtName.toLowerCase().replace(/^on/, "");
+    el.addEventListener(eventType, (e) => {
+      safeExecute(() => handler(e), `event handler ${evtName}`);
     });
-  };
+  }
+}
 
-  // 태그별 특수 처리
+// Input 속성 적용 헬퍼
+function applyInputAttrs(el, options, attrs) {
+  attrs.forEach((attr) => {
+    if (attr in options) {
+      try {
+        el[attr] = options[attr];
+      } catch (error) {
+        handleError(error, `setting attribute ${attr}`);
+      }
+    }
+  });
+}
+
+// Select 옵션 처리
+function applySelectOptions(el, options) {
+  if (Array.isArray(options)) {
+    options.forEach((opt) => {
+      const optionEl = document.createElement("option");
+      if (typeof opt === "string") {
+        optionEl.value = opt;
+        optionEl.textContent = opt;
+      } else if (opt && typeof opt === 'object') {
+        optionEl.value = opt.value || '';
+        optionEl.textContent = opt.label || opt.value || '';
+      }
+      el.appendChild(optionEl);
+    });
+  }
+}
+
+// 태그별 특수 처리
+function applyTagSpecificAttributes(el, options, tag) {
   switch (tag) {
     case "input":
-      applyInputAttrs([
-        "type",
-        "checked",
-        "multiple",
-        "placeholder",
-        "required",
-        "name",
+      applyInputAttrs(el, options, [
+        "type", "checked", "multiple", "placeholder", "required", "name"
       ]);
-      
       const inputType = options.type || "text";
       bindValue(el, options.value, inputType);
       break;
       
     case "textarea":
-      applyInputAttrs(["placeholder", "required", "rows", "cols"]);
+      applyInputAttrs(el, options, ["placeholder", "required", "rows", "cols"]);
       bindValue(el, options.value);
       break;
       
     case "select":
-      applyInputAttrs(["multiple", "required", "name"]);
-      if (Array.isArray(options.options)) {
-        options.options.forEach((opt) => {
-          const optionEl = document.createElement("option");
-          if (typeof opt === "string") {
-            optionEl.value = opt;
-            optionEl.textContent = opt;
-          } else if (opt && typeof opt === 'object') {
-            optionEl.value = opt.value || '';
-            optionEl.textContent = opt.label || opt.value || '';
-          }
-          el.appendChild(optionEl);
-        });
-      }
+      applyInputAttrs(el, options, ["multiple", "required", "name"]);
+      applySelectOptions(el, options.options);
       bindValue(el, options.value);
       break;
       
@@ -218,48 +223,68 @@ function applyAttributes(el, options, tag) {
       bindValue(el, options.value, "radio");
       break;
   }
+}
 
-  // disabled 속성 처리
-  if (typeof options.disabled === "function") {
+// disabled 속성 처리
+function applyDisabledAttribute(el, disabled) {
+  if (typeof disabled === "function") {
     const updateDisabled = () => {
-      const disabled = safeExecute(options.disabled, 'disabled update');
-      if (disabled !== null) {
-        el.disabled = !!disabled;
+      const disabledValue = safeExecute(disabled, 'disabled update');
+      if (disabledValue !== null) {
+        el.disabled = !!disabledValue;
       }
     };
     
     updateDisabled();
     const unsubscribe = subscribeState(updateDisabled);
-    
-    if (el._jihoUnsubscribers) {
-      el._jihoUnsubscribers.push(unsubscribe);
-    } else {
-      el._jihoUnsubscribers = [unsubscribe];
-    }
-  } else if (options.disabled !== undefined) {
-    el.disabled = !!options.disabled;
+    addUnsubscriber(el, unsubscribe);
+  } else if (disabled !== undefined) {
+    el.disabled = !!disabled;
   }
+}
 
-  // show 속성 처리
-  if (typeof options.show === "function") {
+// show 속성 처리
+function applyShowAttribute(el, show) {
+  if (typeof show === "function") {
     const updateShow = () => {
-      const show = safeExecute(options.show, 'show update');
-      if (show !== null) {
-        el.style.display = show ? "" : "none";
+      const showValue = safeExecute(show, 'show update');
+      if (showValue !== null) {
+        el.style.display = showValue ? "" : "none";
       }
     };
     
     updateShow();
     const unsubscribe = subscribeState(updateShow);
-    
-    if (el._jihoUnsubscribers) {
-      el._jihoUnsubscribers.push(unsubscribe);
-    } else {
-      el._jihoUnsubscribers = [unsubscribe];
-    }
-  } else if (options.show === false) {
+    addUnsubscriber(el, unsubscribe);
+  } else if (show === false) {
     el.style.display = "none";
   }
+}
+
+function applyAttributes(el, options, tag) {
+  if (!options || typeof options !== 'object') {
+    console.warn('JihoFrame: Invalid options passed to applyAttributes');
+    return;
+  }
+
+  const { text, style, id, className, event, disabled, show } = options;
+
+  // 기본 속성들 처리
+  applyTextAttribute(el, text);
+  applyStyleAttribute(el, style);
+  
+  if (id) el.id = id;
+  if (className) el.className = className;
+
+  // 이벤트 처리
+  applyEventHandlers(el, event);
+
+  // 태그별 특수 처리
+  applyTagSpecificAttributes(el, options, tag);
+
+  // 상태 기반 속성들 처리
+  applyDisabledAttribute(el, disabled);
+  applyShowAttribute(el, show);
 }
 
 function renderChildren(el, options) {
@@ -374,58 +399,125 @@ function cleanupElement(el) {
   Array.from(el.children).forEach(child => cleanupElement(child));
 }
 
+// JihoUI 컴포넌트 처리 함수
+function handleJihoComponent(tag, options) {
+  const componentMap = {
+    'JihoHeader': JihoHeader,
+    'JihoNav': JihoNav,
+    'JihoSection': JihoSection,
+    'JihoGrid': JihoGrid,
+    'JihoButton': JihoButton
+  };
+
+  const componentFunc = componentMap[tag];
+  if (!componentFunc) {
+    console.warn(`JihoFrame: Unknown JihoUI component: ${tag}`);
+    return null;
+  }
+
+  try {
+    // 컴포넌트 함수 실행하여 JihoFrame 객체 구조 반환
+    const result = componentFunc(options);
+    
+    // 결과가 JihoFrame 객체인 경우 재귀적으로 처리
+    if (result && typeof result === 'object') {
+      const entries = Object.entries(result);
+      if (entries.length > 0) {
+        const [tagName, props] = entries[0];
+        return createElement(tagName, props);
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    handleError(error, `JihoUI component ${tag}`);
+    return null;
+  }
+}
+
+// 함수형 컴포넌트 처리
+function handleFunctionComponent(tag, options) {
+  const resolved = safeExecute(() => tag(options), `component ${tag.name || 'anonymous'}`);
+  if (!resolved) return null;
+  
+  // 컴포넌트가 직접 엘리먼트를 반환하는 경우
+  if (resolved.nodeType) {
+    return resolved;
+  }
+  
+  // 컴포넌트가 JihoFrame 형식을 반환하는 경우
+  if (resolved.layout) {
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'contents'; // wrapper가 레이아웃에 영향주지 않도록
+    
+    const domUpdater = new DOMUpdater(wrapper);
+    domUpdater.update(resolved.layout);
+    
+    return wrapper;
+  }
+  
+  // 기존 방식 (단일 엘리먼트)
+  if (typeof resolved === 'object' && resolved !== null) {
+    const entries = Object.entries(resolved);
+    if (entries.length > 0) {
+      const [resolvedTag, resolvedValue] = entries[0];
+      return createElement(resolvedTag, resolvedValue);
+    }
+  }
+  
+  console.warn('JihoFrame: Component returned invalid object');
+  return null;
+}
+
+// 함수형 옵션 처리
+function handleFunctionOptions(options) {
+  const resolved = safeExecute(options, 'options function');
+  if (!resolved) return null;
+  
+  if (typeof resolved === 'object' && resolved !== null) {
+    const entries = Object.entries(resolved);
+    if (entries.length > 0) {
+      const [resolvedTag, resolvedValue] = entries[0];
+      return createElement(resolvedTag, resolvedValue);
+    }
+  }
+  
+  console.warn('JihoFrame: Options function returned invalid object');
+  return null;
+}
+
+// 일반 엘리먼트 생성
+function createStandardElement(tag, options) {
+  if (typeof tag !== 'string') {
+    console.warn('JihoFrame: Tag must be a string, got:', typeof tag);
+    return null;
+  }
+  
+  const el = document.createElement(tag);
+  
+  if (options) {
+    applyAttributes(el, options, tag);
+    renderChildren(el, options);
+  }
+  
+  return el;
+}
+
 export function createElement(tag, options) {
   try {
-    // 함수형 컴포넌트 처리 - 개선된 방식
+    // JihoUI 컴포넌트 처리
+    if (typeof tag === "string" && tag.startsWith("Jiho")) {
+      return handleJihoComponent(tag, options);
+    }
+
+    // 함수형 컴포넌트 처리
     if (typeof tag === "function") {
-      const resolved = safeExecute(() => tag(options), `component ${tag.name || 'anonymous'}`);
-      if (!resolved) return null;
-      
-      // 컴포넌트가 직접 엘리먼트를 반환하는 경우
-      if (resolved.nodeType) {
-        return resolved;
-      }
-      
-      // 컴포넌트가 JihoFrame 형식을 반환하는 경우
-      if (resolved.layout) {
-        // 컴포넌트의 layout을 직접 렌더링
-        const wrapper = document.createElement('div');
-        wrapper.style.display = 'contents'; // wrapper가 레이아웃에 영향주지 않도록
-        
-        const domUpdater = new DOMUpdater(wrapper);
-        domUpdater.update(resolved.layout);
-        
-        return wrapper;
-      }
-      
-      // 기존 방식 (단일 엘리먼트)
-      if (typeof resolved === 'object' && resolved !== null) {
-        const entries = Object.entries(resolved);
-        if (entries.length > 0) {
-          const [resolvedTag, resolvedValue] = entries[0];
-          return createElement(resolvedTag, resolvedValue);
-        }
-      }
-      
-      console.warn('JihoFrame: Component returned invalid object');
-      return null;
+      return handleFunctionComponent(tag, options);
     }
 
     // 옵션이 함수인 경우
     if (typeof options === "function") {
-      const resolved = safeExecute(options, 'options function');
-      if (!resolved) return null;
-      
-      if (typeof resolved === 'object' && resolved !== null) {
-        const entries = Object.entries(resolved);
-        if (entries.length > 0) {
-          const [resolvedTag, resolvedValue] = entries[0];
-          return createElement(resolvedTag, resolvedValue);
-        }
-      }
-      
-      console.warn('JihoFrame: Options function returned invalid object');
-      return null;
+      return handleFunctionOptions(options);
     }
 
     // 간단한 텍스트 노드
@@ -436,19 +528,7 @@ export function createElement(tag, options) {
     }
 
     // 일반 엘리먼트 생성
-    if (typeof tag !== 'string') {
-      console.warn('JihoFrame: Tag must be a string, got:', typeof tag);
-      return null;
-    }
-    
-    const el = document.createElement(tag);
-    
-    if (options) {
-      applyAttributes(el, options, tag);
-      renderChildren(el, options);
-    }
-    
-    return el;
+    return createStandardElement(tag, options);
   } catch (error) {
     handleError(error, `createElement for tag ${tag}`);
     return null;
@@ -490,6 +570,46 @@ function renderConditionalBlock(value, container) {
     unsubscribers = [];
   };
 
+  // 조건 평가 헬퍼 함수
+  const evaluateCondition = (props, rendered) => {
+    const condition = props.if ?? (rendered ? false : props.elseIf ?? props.else);
+    return typeof condition === "function" 
+      ? safeExecute(condition, 'conditional condition')
+      : condition;
+  };
+
+  // 조건부 아이템 처리 헬퍼 함수
+  const processConditionalItem = (item, rendered) => {
+    if (!item || typeof item !== 'object') {
+      console.warn('JihoFrame: Invalid conditional item');
+      return { shouldContinue: true, rendered };
+    }
+    
+    const entries = Object.entries(item);
+    if (entries.length === 0) {
+      console.warn('JihoFrame: Empty conditional item');
+      return { shouldContinue: true, rendered };
+    }
+    
+    const [tag, props] = entries[0];
+    if (!props || typeof props !== 'object') {
+      return { shouldContinue: true, rendered };
+    }
+
+    const shouldRender = evaluateCondition(props, rendered);
+    
+    if (shouldRender && !rendered) {
+      const element = createElement(tag, props);
+      if (element && container.contains(end)) {
+        container.insertBefore(element, end);
+        currentElement = element;
+        return { shouldContinue: false, rendered: true };
+      }
+    }
+    
+    return { shouldContinue: true, rendered };
+  };
+
   const rerender = () => {
     try {
       // end가 아직 존재하는지 확인
@@ -504,35 +624,9 @@ function renderConditionalBlock(value, container) {
       let rendered = false;
 
       for (const item of value) {
-        if (!item || typeof item !== 'object') {
-          console.warn('JihoFrame: Invalid conditional item');
-          continue;
-        }
-        
-        const entries = Object.entries(item);
-        if (entries.length === 0) {
-          console.warn('JihoFrame: Empty conditional item');
-          continue;
-        }
-        
-        const [tag, props] = entries[0];
-        if (!props || typeof props !== 'object') continue;
-
-        // 조건 평가
-        const condition = props.if ?? (rendered ? false : props.elseIf ?? props.else);
-        const shouldRender = typeof condition === "function" 
-          ? safeExecute(condition, 'conditional condition')
-          : condition;
-
-        if (shouldRender && !rendered) {
-          const element = createElement(tag, props);
-          if (element && container.contains(end)) {
-            container.insertBefore(element, end);
-            currentElement = element;
-            rendered = true;
-            break;
-          }
-        }
+        const result = processConditionalItem(item, rendered);
+        rendered = result.rendered;
+        if (!result.shouldContinue) break;
       }
     } catch (error) {
       handleError(error, 'conditional block rerender');
@@ -582,6 +676,37 @@ function renderSwitchBlock(switchObj, container) {
     unsubscribers = [];
   };
 
+  // switch 값 평가 헬퍼 함수
+  const getSwitchValue = () => {
+    return typeof switchObj.switch === "function"
+      ? safeExecute(switchObj.switch, 'switch value function')
+      : switchObj.switch;
+  };
+
+  // switch case 처리 헬퍼 함수
+  const processSwitchCase = (caseObj, switchValue) => {
+    if (!caseObj || typeof caseObj !== 'object') {
+      return false;
+    }
+    
+    if (caseObj.case === switchValue || caseObj.default === true) {
+      if (caseObj.element && typeof caseObj.element === 'object') {
+        const entries = Object.entries(caseObj.element);
+        if (entries.length > 0) {
+          const [tag, props] = entries[0];
+          const element = createElement(tag, props);
+          if (element && container.contains(end)) {
+            container.insertBefore(element, end);
+            currentElement = element;
+            return true;
+          }
+        }
+      }
+    }
+    
+    return false;
+  };
+
   const rerender = () => {
     try {
       if (!container.contains(end)) {
@@ -592,9 +717,7 @@ function renderSwitchBlock(switchObj, container) {
       // 기존 엘리먼트 정리
       cleanup();
 
-      const switchValue = typeof switchObj.switch === "function"
-        ? safeExecute(switchObj.switch, 'switch value function')
-        : switchObj.switch;
+      const switchValue = getSwitchValue();
 
       if (!Array.isArray(switchObj.cases)) {
         console.warn('JihoFrame: Switch cases must be an array');
@@ -602,21 +725,8 @@ function renderSwitchBlock(switchObj, container) {
       }
 
       for (const caseObj of switchObj.cases) {
-        if (!caseObj || typeof caseObj !== 'object') continue;
-        
-        if (caseObj.case === switchValue || caseObj.default === true) {
-          if (caseObj.element && typeof caseObj.element === 'object') {
-            const entries = Object.entries(caseObj.element);
-            if (entries.length > 0) {
-              const [tag, props] = entries[0];
-              const element = createElement(tag, props);
-              if (element && container.contains(end)) {
-                container.insertBefore(element, end);
-                currentElement = element;
-                break;
-              }
-            }
-          }
+        if (processSwitchCase(caseObj, switchValue)) {
+          break;
         }
       }
     } catch (error) {
@@ -661,6 +771,44 @@ class DOMUpdater {
     this.cleanupFunctions = [];
   }
 
+  // 함수형 아이템 처리
+  processFunctionItem(item, index) {
+    const resolved = safeExecute(item, `layout function at index ${index}`);
+    if (resolved && typeof resolved === 'object') {
+      const entries = Object.entries(resolved);
+      if (entries.length > 0) {
+        const [resolvedTag, resolvedValue] = entries[0];
+        const element = createElement(resolvedTag, resolvedValue);
+        if (element) {
+          this.container.appendChild(element);
+          this.currentNodes.push(element);
+        }
+      }
+    }
+  }
+
+  // 객체형 아이템 처리
+  processObjectItem(item) {
+    const entries = Object.entries(item);
+    if (entries.length > 0) {
+      const [tag, value] = entries[0];
+      
+      if (tag === "condition" && Array.isArray(value)) {
+        const cleanup = renderConditionalBlock(value, this.container);
+        if (cleanup) this.cleanupFunctions.push(cleanup);
+      } else if (tag === "switchBlock") {
+        const cleanup = renderSwitchBlock(value, this.container);
+        if (cleanup) this.cleanupFunctions.push(cleanup);
+      } else {
+        const element = createElement(tag, value);
+        if (element) {
+          this.container.appendChild(element);
+          this.currentNodes.push(element);
+        }
+      }
+    }
+  }
+
   // 새로운 노드들 추가
   update(layoutItems) {
     this.cleanup();
@@ -673,37 +821,9 @@ class DOMUpdater {
     layoutItems.forEach((item, index) => {
       try {
         if (typeof item === "function") {
-          const resolved = safeExecute(item, `layout function at index ${index}`);
-          if (resolved && typeof resolved === 'object') {
-            const entries = Object.entries(resolved);
-            if (entries.length > 0) {
-              const [resolvedTag, resolvedValue] = entries[0];
-              const element = createElement(resolvedTag, resolvedValue);
-              if (element) {
-                this.container.appendChild(element);
-                this.currentNodes.push(element);
-              }
-            }
-          }
+          this.processFunctionItem(item, index);
         } else if (item && typeof item === 'object') {
-          const entries = Object.entries(item);
-          if (entries.length > 0) {
-            const [tag, value] = entries[0];
-            
-            if (tag === "condition" && Array.isArray(value)) {
-              const cleanup = renderConditionalBlock(value, this.container);
-              if (cleanup) this.cleanupFunctions.push(cleanup);
-            } else if (tag === "switchBlock") {
-              const cleanup = renderSwitchBlock(value, this.container);
-              if (cleanup) this.cleanupFunctions.push(cleanup);
-            } else {
-              const element = createElement(tag, value);
-              if (element) {
-                this.container.appendChild(element);
-                this.currentNodes.push(element);
-              }
-            }
-          }
+          this.processObjectItem(item);
         }
       } catch (error) {
         handleError(error, `rendering layout item at index ${index}`);
@@ -733,6 +853,17 @@ export function renderApp(appFunc, container) {
   const domUpdater = new DOMUpdater(container);
   let appUnsubscribers = [];
 
+  // 마운트 콜백 실행 헬퍼
+  const executeMountCallbacks = () => {
+    mountCallbacks.forEach((cb) => {
+      try {
+        cb();
+      } catch (error) {
+        handleError(error, 'mount callback');
+      }
+    });
+  };
+
   const rerender = () => {
     try {
       const tree = safeExecute(appFunc, 'app function');
@@ -744,15 +875,7 @@ export function renderApp(appFunc, container) {
       }
 
       domUpdater.update(tree.layout);
-
-      // 마운트 콜백 실행
-      mountCallbacks.forEach((cb) => {
-        try {
-          cb();
-        } catch (error) {
-          handleError(error, 'mount callback');
-        }
-      });
+      executeMountCallbacks();
     } catch (error) {
       handleError(error, 'app rerender');
     }

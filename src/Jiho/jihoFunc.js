@@ -5,10 +5,10 @@ let componentSubscriptions = new WeakMap(); // 컴포넌트별 구독 관리
 let batchUpdateQueue = new Set();
 let isBatchUpdating = false;
 
-let initCallbacks = [];
-let mountCallbacks = [];
-let updateCallbacks = new Map(); 
-let unmountCallbacks = [];
+const initCallbacks = [];
+const mountCallbacks = [];
+const updateCallbacks = new Map(); 
+const unmountCallbacks = [];
 
 // 배치 업데이트 시스템
 function flushBatchUpdates() {

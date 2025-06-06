@@ -1,0 +1,40 @@
+# 빌드 결과물
+dist/
+build/
+
+# 의존성
+node_modules/
+
+# 테스트 커버리지
+coverage/
+
+# 로그 파일
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 환경 설정
+.env
+.env.local
+.env.*.local
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 임시 파일
+*.tmp
+*.temp
+
+# 번들 분석
+bundle-analyzer-report.html
+
+# 벤치마크 결과
+benchmark-results/ 
